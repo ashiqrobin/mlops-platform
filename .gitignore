@@ -1,0 +1,67 @@
+# Secrets and credentials
+.env
+.env.local
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*secret*
+*password*
+*credential*
+config.json
+secrets.json
+aws-credentials
+.aws/credentials
+.gcp/
+.azure/
+
+# Python environments and cache
+.venv/
+venv/
+env/
+.env/
+pyvenv.cfg
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# uv
+.uv/
+uv.lock
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
