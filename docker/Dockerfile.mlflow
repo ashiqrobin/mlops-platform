@@ -3,4 +3,4 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 RUN uv pip install --system mlflow[extras] psycopg2-binary boto3
 
-CMD ["sh", "-c", "mlflow server --backend-store-uri postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB --default-artifact-root s3://$ARTIFACT_BUCKET --host 0.0.0.0"]
+CMD ["sh", "-c", "mlflow server --backend-store-uri postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB --default-artifact-root s3://$ARTIFACT_BUCKET --host 0.0.0.0 --allowed-hosts mlflow,mlflow:5000,localhost,localhost:5000,127.0.0.1 --no-serve-artifacts"]

@@ -1,4 +1,4 @@
 from dagster import Definitions
+from pipelines.ml_pipeline import mlops_repo
 
-# Empty definitions for now - pipelines can be added later
-defs = Definitions()
+defs = mlops_repo
