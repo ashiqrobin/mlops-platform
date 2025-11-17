@@ -1,11 +1,22 @@
 import os
+import hashlib
 import pandas as pd
 import mlflow
-import hashlib
-from dagster import job, op, repository, ScheduleDefinition
+from mlflow.tracking import MlflowClient
+from dagster import (
+    AssetKey,
+    AssetMaterialization,
+    Output,
+    ScheduleDefinition,
+    job,
+    op,
+    repository,
+)
 from dagster_aws.s3 import s3_resource
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+RUN_OWNER = os.getenv("RUN_OWNER", "unknown")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 DATA_BUCKET = os.getenv("DATA_BUCKET")
 DATA_PATH = "/opt/dagster/app/data/sample_data.csv"
 
@@ -29,25 +40,46 @@ def validate_data(context, inputs):
 @op
 def train_model(context, inputs):
     df, data_hash, s3_key = inputs
-    with mlflow.start_run():
+    with mlflow.start_run(run_name=f"training-{ENVIRONMENT}"):
+        mlflow.log_param("owner", RUN_OWNER)
+        mlflow.log_param("environment", ENVIRONMENT)
         mlflow.log_param("dataset_s3_key", s3_key)
         mlflow.log_param("dataset_hash", data_hash)
+        mlflow.log_param("row_count", len(df))
         mlflow.log_metric("mock_accuracy", 0.95)
 
-        import json, tempfile
+        import json
+        import tempfile
+
         model = {"coef": [0.1, 0.2]}
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
             json.dump(model, f)
             f.flush()
             mlflow.log_artifact(f.name, "model")
 
         model_uri = f"runs:/{mlflow.active_run().info.run_id}/model"
         registered = mlflow.register_model(model_uri, "CreditRiskModel")
-        return registered.version
+        return registered.version, data_hash
 
 @op
-def register_model(context, version):
-    context.log.info(f"Model registered: v{version}")
+def register_with_governance(context, inputs):
+    version, data_hash = inputs
+    client = MlflowClient()
+    client.set_model_version_tag("CreditRiskModel", version, "approval_state", "pending_staging")
+    client.set_model_version_tag("CreditRiskModel", version, "data_hash", data_hash)
+    client.set_model_version_tag("CreditRiskModel", version, "audit_owner", RUN_OWNER)
+    client.set_model_version_tag("CreditRiskModel", version, "audit_env", ENVIRONMENT)
+    client.set_model_version_tag("CreditRiskModel", version, "audit_timestamp", pd.Timestamp.now().isoformat())
+
+    if ENVIRONMENT != "dev":
+        client.set_model_version_tag("CreditRiskModel", version, "deployment_blocked", "true")
+
+    yield AssetMaterialization(
+        asset_key=AssetKey(["models", "CreditRiskModel"]),
+        metadata={"version": version, "approval": "pending_staging"},
+    )
+    context.log.info(f"Registered model version {version} with governance tags")
+    yield Output(version)
 
 @job(resource_defs={
     "s3": s3_resource.configured({
@@ -60,8 +92,8 @@ def register_model(context, version):
 def ml_training_pipeline():
     data = ingest_data()
     validated = validate_data(data)
-    version = train_model(validated)
-    register_model(version)
+    model_info = train_model(validated)
+    register_with_governance(model_info)
 
 ml_training_schedule = ScheduleDefinition(
     job=ml_training_pipeline,
