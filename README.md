@@ -235,7 +235,7 @@ Configuration lives in `.env` and `.env.example`. Update `RUN_OWNER`, `RUN_ROLE`
    - Extend `docs/` with additional design notes (e.g., CI/CD plan, security hardening).
 
 5. **Optional artifacts**
-   - AI prompt log, architecture diagrams, or recorded demos can be stored in `docs/` for interview follow-up.
+   - AI prompt log, architecture diagrams, or recorded demos can be stored in `docs/` for interview follow-up. See `docs/ai_prompt_log.md` for the current prompt history.
 
 ---
 
