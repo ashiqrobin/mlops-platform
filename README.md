@@ -241,4 +241,4 @@ Configuration lives in `.env` and `.env.example`. Update `RUN_OWNER`, `RUN_ROLE`
 
 ## License
 
-This project is provided as an interview deliverable template. Adapt or extend it for your organization’s needs.
+This project is provided as an template. Adapt or extend it for your organization’s needs.
