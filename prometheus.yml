@@ -1,0 +1,5 @@
+scrape_configs:
+  - job_name: 'dagster'
+    static_configs:
+      - targets: ['dagster:3000']
+    metrics_path: '/dagster/metrics'
