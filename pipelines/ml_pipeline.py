@@ -68,7 +68,9 @@ def log_audit_event(step: str, status: str, **metadata) -> None:
     }
     if not AUDIT_BUCKET:
         raise RuntimeError("AUDIT_BUCKET must be configured for audit logging")
-    safe_timestamp = record["timestamp"].replace(":", "-").replace("+", "-").replace("T", "_")
+    safe_timestamp = (
+        record["timestamp"].replace(":", "-").replace("+", "-").replace("T", "_")
+    )
     key = f"{AUDIT_LOG_PREFIX}{safe_timestamp}-{step}-{uuid.uuid4().hex}.json"
     _AUDIT_S3_CLIENT.put_object(
         Bucket=AUDIT_BUCKET,
@@ -102,7 +104,9 @@ def enforce_environment_guardrails(step: str) -> None:
 def ingest_data(context):
     df = pd.read_csv(DATA_PATH)
     key = "raw/sample_data.csv"
-    context.resources.s3.put_object(Bucket=DATA_BUCKET, Key=key, Body=open(DATA_PATH, "rb").read())
+    context.resources.s3.put_object(
+        Bucket=DATA_BUCKET, Key=key, Body=open(DATA_PATH, "rb").read()
+    )
     data_hash = hashlib.sha256(df.to_csv(index=False).encode()).hexdigest()
     log_audit_event(
         "ingest_data",
@@ -164,14 +168,20 @@ def train_model(context, inputs):
 def register_with_governance(context, inputs):
     version, data_hash = inputs
     client = MlflowClient()
-    client.set_model_version_tag("CreditRiskModel", version, "approval_state", "pending_staging")
+    client.set_model_version_tag(
+        "CreditRiskModel", version, "approval_state", "pending_staging"
+    )
     client.set_model_version_tag("CreditRiskModel", version, "data_hash", data_hash)
     client.set_model_version_tag("CreditRiskModel", version, "audit_owner", RUN_OWNER)
     client.set_model_version_tag("CreditRiskModel", version, "audit_env", ENVIRONMENT)
-    client.set_model_version_tag("CreditRiskModel", version, "audit_timestamp", pd.Timestamp.now().isoformat())
+    client.set_model_version_tag(
+        "CreditRiskModel", version, "audit_timestamp", pd.Timestamp.now().isoformat()
+    )
 
     if ENVIRONMENT != "dev":
-        client.set_model_version_tag("CreditRiskModel", version, "deployment_blocked", "true")
+        client.set_model_version_tag(
+            "CreditRiskModel", version, "deployment_blocked", "true"
+        )
 
     log_audit_event(
         "register_with_governance",
@@ -186,25 +196,30 @@ def register_with_governance(context, inputs):
     context.log.info(f"Registered model version {version} with governance tags")
     yield Output(version)
 
-@job(resource_defs={
-    "s3": s3_resource.configured({
-        "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID"),
-        "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
-        "endpoint_url": os.getenv("MLFLOW_S3_ENDPOINT_URL"),
-        "region_name": "us-east-1"
-    })
-})
+
+@job(
+    resource_defs={
+        "s3": s3_resource.configured(
+            {
+                "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID"),
+                "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
+                "endpoint_url": os.getenv("MLFLOW_S3_ENDPOINT_URL"),
+                "region_name": "us-east-1",
+            }
+        )
+    }
+)
 def ml_training_pipeline():
     data = ingest_data()
     validated = validate_data(data)
     model_info = train_model(validated)
     register_with_governance(model_info)
 
+
 ml_training_schedule = ScheduleDefinition(
-    job=ml_training_pipeline,
-    cron_schedule="0 */6 * * *",
-    name="ml_training_schedule"
+    job=ml_training_pipeline, cron_schedule="0 */6 * * *", name="ml_training_schedule"
 )
+
 
 @repository
 def mlops_repo():
