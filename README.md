@@ -46,10 +46,6 @@ flowchart LR
     P -->|Dashboards| G
 ```
 
-<p align="center">
-  <img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgICBzdWJncmFwaCBPcmNoZXN0cmF0aW9uCiAgICAgICAgRFtEYWdzdGVyXQogICAgZW5kCiAgICBzdWJncmFwaCBUcmFja2luZwogICAgICAgIE1bTUxmbG93XQogICAgICAgIFJbKFBvc3RncmVzKV0KICAgIGVuZAogICAgc3ViZ3JhcGggU3RvcmFnZQogICAgICAgIFNbKE1pbklPIC8gUzMpXQogICAgZW5kCiAgICBzdWJncmFwaCBPYnNlcnZhYmlsaXR5CiAgICAgICAgUFtQcm9tZXRoZXVzXQogICAgICAgIEdbR3JhZmFuYV0KICAgICAgICBETVtEcmlmdCBNb25pdG9yXQogICAgICAgIERYW0RhZ3N0ZXIgTWV0cmljcyBFeHBvcnRlcl0KICAgIGVuZAogICAgRCAtLT58UnVucyArIE1ldHJpY3N8IE0KICAgIEQgLS0+fEFydGlmYWN0cyArIGRhdGF8IFMKICAgIE0gLS0+fE1ldGFkYXRhfCBSCiAgICBEIC0tPnxBdWRpdCBKU09OfCBTCiAgICBETSAtLT58RGF0YXNldCBoYXNofCBQCiAgICBEWCAtLT58SGVhbHRoIG1ldHJpY3N8IFAKICAgIFAgLS0+fERhc2hib2FyZHN8IEcK" alt="MLOps architecture diagram (rendered via mermaid.ink)"/>
-</p>
-
 **Trade-offs & evolution**
 
 - Dagster chosen for modern Python-native DAG authoring and ML-friendly ops; Dagster can scale out via ECS/EKS (see [Autoscaling plan](#infrastructure-as-code--autoscaling)).
