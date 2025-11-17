@@ -64,6 +64,7 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml
     ports: ["9090:9090"]
 
   grafana:
@@ -72,6 +73,30 @@ services:
     ports: ["3030:3000"]
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+  dagster-metrics:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dagster_metrics
+    depends_on:
+      - dagster
+    env_file: .env
+    environment:
+      DAGSTER_HEALTH_URL: http://dagster:3000/server_info
+    ports: ["9200:9200"]
+
+  drift-monitor:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.drift
+    env_file: .env
+    environment:
+      DRIFT_DATA_PATH: /opt/drift/data/sample_data.csv
+    volumes:
+      - ./data:/opt/drift/data
+    ports: ["9100:9100"]
 
 volumes:
   postgres_data:

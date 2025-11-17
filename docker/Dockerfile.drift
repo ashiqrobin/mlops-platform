@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /opt/drift
+COPY monitoring/drift_monitor.py /opt/drift/drift_monitor.py
+RUN pip install --no-cache-dir prometheus-client
+ENV DRIFT_DATA_PATH=/opt/drift/data/sample_data.csv
+ENV DRIFT_MONITOR_PORT=9100
+CMD ["python", "/opt/drift/drift_monitor.py"]

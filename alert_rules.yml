@@ -1,0 +1,49 @@
+groups:
+  - name: service-health
+    rules:
+      - alert: DagsterServiceDown
+        expr: up{job="dagster"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Dagster service is unreachable
+          description: Dagster metrics endpoint has been down for more than 2 minutes.
+
+      - alert: MlflowServiceDown
+        expr: up{job="mlflow"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: MLflow service is unreachable
+          description: MLflow metrics endpoint has been down for more than 2 minutes.
+
+      - alert: MinioServiceDown
+        expr: up{job="minio"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: MinIO service is unreachable
+          description: MinIO metrics endpoint has been down for more than 2 minutes.
+
+  - name: ml-guardrails
+    rules:
+      - alert: DataDriftDetected
+        expr: synthetic_data_drift_detected == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Data drift detected by drift-monitor
+          description: Synthetic drift monitor flagged dataset hash mismatch versus baseline.
+
+      - alert: DriftMonitorSilent
+        expr: time() - synthetic_data_last_check_timestamp > 900
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Drift monitor has not reported recently
+          description: No drift checks have been recorded for more than 15 minutes.

@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /opt/exporter
+COPY monitoring/dagster_metrics_exporter.py /opt/exporter/exporter.py
+RUN pip install --no-cache-dir prometheus-client requests
+ENV DAGSTER_HEALTH_URL=http://dagster:3000/server_info
+ENV DAGSTER_METRICS_PORT=9200
+CMD ["python", "/opt/exporter/exporter.py"]
